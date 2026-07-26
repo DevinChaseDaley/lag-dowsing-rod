@@ -38,7 +38,10 @@ export function computeRodAngleRadians(users: User[]): number {
     y += weight * Math.sin(angle);
   }
 
-  if (x === 0 && y === 0) return 0;
+  if (Math.abs(x) < 1e-12 && Math.abs(y) < 1e-12) {
+    return Math.PI / 2;
+  }
+
   return Math.atan2(y, x);
 }
 
