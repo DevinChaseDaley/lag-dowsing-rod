@@ -26,6 +26,11 @@ export function computeRodAngleRadians(users: User[]): number {
   if (users.length === 0) return 0;
 
   const totalSlots = getTotalSlots(users);
+
+  if (users.length === 1) {
+    return wheelAngleRadians(users[0].slotIndex, totalSlots);
+  }
+
   let x = 0;
   let y = 0;
 

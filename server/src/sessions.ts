@@ -41,6 +41,7 @@ export class SessionManager {
   getUsers(sessionId: string): User[] {
     const session = this.getSession(sessionId);
     if (!session) return [];
+    this.compactSlots(session);
     return [...session.users.values()].sort((a, b) => a.slotIndex - b.slotIndex);
   }
 
@@ -64,6 +65,7 @@ export class SessionManager {
       const existing = [...session.users.values()].find((user) => user.clientId === clientId);
       if (existing) {
         existing.userName = trimmedName;
+        this.compactSlots(session);
         return { user: existing, reconnected: true };
       }
     }
@@ -82,6 +84,7 @@ export class SessionManager {
 
     session.nextSlotIndex += 1;
     session.users.set(user.userId, user);
+    this.compactSlots(session);
     return { user, reconnected: false };
   }
 
@@ -93,6 +96,7 @@ export class SessionManager {
     if (!user) return null;
 
     session.users.delete(userId);
+    this.compactSlots(session);
     session.lastActivityAt = Date.now();
     return user;
   }
@@ -112,6 +116,14 @@ export class SessionManager {
   private getSession(sessionId: string): SessionRecord | undefined {
     this.pruneExpiredSessions();
     return this.sessions.get(sessionId.toUpperCase());
+  }
+
+  private compactSlots(session: SessionRecord): void {
+    const users = [...session.users.values()].sort((a, b) => a.slotIndex - b.slotIndex);
+    users.forEach((user, index) => {
+      user.slotIndex = index;
+    });
+    session.nextSlotIndex = users.length;
   }
 
   private generateSessionId(): string {

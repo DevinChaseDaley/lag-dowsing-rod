@@ -3,11 +3,11 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 440px;
+  width: 100%;
 }
 
 .wheel {
-  width: min(100%, 420px);
+  width: min(100%, 760px);
   height: auto;
   overflow: visible;
 }

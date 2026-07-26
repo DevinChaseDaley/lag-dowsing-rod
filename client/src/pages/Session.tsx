@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { ParticipantList } from "../components/ParticipantList";
 import { Wheel } from "../components/Wheel";
 import { useSessionSocket } from "../hooks/useSessionSocket";
 import {
@@ -29,7 +28,7 @@ export function Session() {
     [normalizedSessionId],
   );
 
-  const { users, connected, error, selfUserId } = useSessionSocket({
+  const { users, connected, error } = useSessionSocket({
     sessionId: normalizedSessionId,
     userName,
     clientId,
@@ -145,7 +144,6 @@ export function Session() {
 
       <div className={styles.layout}>
         <Wheel users={users} />
-        <ParticipantList users={users} selfUserId={selfUserId} />
       </div>
 
       {error ? <p className={styles.error}>{error}</p> : null}

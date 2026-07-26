@@ -48,6 +48,13 @@ describe("computeRodAngleRadians", () => {
     expect(computeRodAngleRadians(users)).toBeCloseTo(wheelAngleRadians(0, 1));
   });
 
+  it("points at the only user even without a ping sample", () => {
+    // Input: one user with no ping sample in an otherwise empty session.
+    // Output: the rod should still point at that user’s slot.
+    const users = [user(0, null)];
+    expect(computeRodAngleRadians(users)).toBeCloseTo(wheelAngleRadians(0, 1));
+  });
+
   it("points between opposite users with equal ping", () => {
     // Input: two users with equal ping occupying opposite slots.
     // Output: the rod should settle halfway between them, which yields a cosine near zero.

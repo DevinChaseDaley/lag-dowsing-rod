@@ -35,7 +35,7 @@ export function Wheel({ users }: WheelProps) {
           className={styles.ring}
         />
         <circle cx={CENTER} cy={CENTER} r={8} className={styles.pivot} />
-        <DowsingRod angle={rodAngle} center={CENTER} length={RADIUS - 24} />
+        <DowsingRod angle={rodAngle} center={CENTER} length={RADIUS} />
         {users.map((user) => {
           const position = wheelPosition(user.slotIndex, totalSlots, RADIUS);
           const x = CENTER + position.x;

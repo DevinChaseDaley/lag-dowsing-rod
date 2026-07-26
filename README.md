@@ -40,6 +40,18 @@ npm run dev
 
 The Vite dev server proxies `/api` and `/ws` to the backend.
 
+### Docker
+
+Run the full stack with Docker Compose:
+
+```bash
+docker compose up --build
+```
+
+- Frontend: http://localhost:5173
+- Backend API: http://localhost:3001/api
+- WebSocket: ws://localhost:3001/ws
+
 ## Scripts
 
 | Command | Description |

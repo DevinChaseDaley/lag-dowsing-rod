@@ -5,10 +5,12 @@ interface DowsingRodProps {
 }
 
 export function DowsingRod({ angle, center, length }: DowsingRodProps) {
+  const rotation = angle + 90;
+
   return (
     <g
       className="rodGroup"
-      transform={`translate(${center} ${center}) rotate(${angle})`}
+      transform={`translate(${center} ${center}) rotate(${rotation})`}
       style={{ transition: "transform 300ms ease-out" }}
     >
       <line
