@@ -1,0 +1,54 @@
+:root {
+  color-scheme: dark;
+  font-family: "Segoe UI", system-ui, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+  color: #f4f1ea;
+  background:
+    radial-gradient(circle at top, rgba(214, 168, 79, 0.18), transparent 35%),
+    linear-gradient(180deg, #17130f 0%, #0d0b09 100%);
+  --surface: rgba(255, 255, 255, 0.04);
+  --border: rgba(255, 255, 255, 0.1);
+  --text-muted: rgba(244, 241, 234, 0.68);
+  --accent: #d6a84f;
+  --wheel-ring: rgba(214, 168, 79, 0.45);
+  --rod-color: #e8c27a;
+  --rod-pivot: #8b5e2a;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+}
+
+a {
+  color: inherit;
+}
+
+button,
+input {
+  font: inherit;
+}
+
+.userNodeCircle {
+  fill: rgba(214, 168, 79, 0.18);
+  stroke: var(--accent);
+  stroke-width: 2;
+}
+
+.userNodeName {
+  fill: #f4f1ea;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.userNodePing {
+  fill: var(--text-muted);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
