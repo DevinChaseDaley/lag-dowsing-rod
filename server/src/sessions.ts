@@ -38,6 +38,11 @@ export class SessionManager {
     return this.sessions.has(sessionId.toUpperCase());
   }
 
+  activeSessionCount(): number {
+    this.pruneExpiredSessions();
+    return this.sessions.size;
+  }
+
   getUsers(sessionId: string): User[] {
     const session = this.getSession(sessionId);
     if (!session) return [];

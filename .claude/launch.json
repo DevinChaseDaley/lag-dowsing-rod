@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "dev",
+      "runtimeExecutable": "./.claude/run-dev.sh",
+      "runtimeArgs": [],
+      "port": 5173
+    }
+  ]
+}

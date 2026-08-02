@@ -3,13 +3,14 @@
   "private": true,
   "workspaces": [
     "client",
+    "control-plane",
     "server",
     "shared"
   ],
   "scripts": {
-    "dev": "npm run build -w shared && concurrently \"npm run dev -w server\" \"npm run dev -w client\"",
-    "build": "npm run build -w shared && npm run build -w server && npm run build -w client",
-    "test": "npm run test -w shared && npm run test -w client && npm run test -w server"
+    "dev": "npm run build -w shared && concurrently \"npm run dev -w server\" \"npm run dev -w control-plane\" \"npm run dev -w client\"",
+    "build": "npm run build -w shared && npm run build -w server && npm run build -w control-plane && npm run build -w client",
+    "test": "npm run test -w shared && npm run test -w client && npm run test -w server && npm run test -w control-plane"
   },
   "devDependencies": {
     "concurrently": "^9.1.2"
