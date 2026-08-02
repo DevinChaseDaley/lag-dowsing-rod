@@ -29,6 +29,10 @@ export async function createApp() {
     return { sessionId: request.params.id.toUpperCase(), exists: true };
   });
 
+  app.get("/api/status", async () => {
+    return { activeSessions: sessions.activeSessionCount() };
+  });
+
   return { app, sessions, hub };
 }
 

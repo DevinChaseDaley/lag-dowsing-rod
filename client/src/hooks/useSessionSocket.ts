@@ -7,12 +7,13 @@ import {
   type ServerMessage,
   type User,
 } from "@lag-dowsing-rod/shared";
-import { getWebSocketUrl } from "../lib/sessionApi";
+import { getWebSocketUrl, type SessionLocation } from "../lib/sessionApi";
 
 interface UseSessionSocketOptions {
   sessionId: string;
   userName: string;
   clientId: string;
+  location: SessionLocation | null;
   enabled: boolean;
 }
 
@@ -27,6 +28,7 @@ export function useSessionSocket({
   sessionId,
   userName,
   clientId,
+  location,
   enabled,
 }: UseSessionSocketOptions): UseSessionSocketResult {
   const [users, setUsers] = useState<User[]>([]);
@@ -55,14 +57,14 @@ export function useSessionSocket({
   }, [send]);
 
   useEffect(() => {
-    if (!enabled || !sessionId || !userName) return;
+    if (!enabled || !sessionId || !userName || !location) return;
 
     let cancelled = false;
 
     const connect = () => {
       if (cancelled) return;
 
-      const socket = new WebSocket(getWebSocketUrl());
+      const socket = new WebSocket(getWebSocketUrl(location));
       socketRef.current = socket;
       joinedRef.current = false;
 
@@ -150,7 +152,7 @@ export function useSessionSocket({
       socketRef.current?.close();
       socketRef.current = null;
     };
-  }, [clientId, enabled, reportPing, send, sessionId, userName]);
+  }, [clientId, enabled, location, reportPing, send, sessionId, userName]);
 
   return { users, connected, error, selfUserId };
 }

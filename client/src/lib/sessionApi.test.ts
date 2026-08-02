@@ -3,8 +3,8 @@ import {
   createSession,
   getClientId,
   getStoredUserName,
+  resolveSession,
   storeUserName,
-  validateSession,
 } from "./sessionApi.js";
 
 describe("sessionApi", () => {
@@ -93,28 +93,62 @@ describe("sessionApi", () => {
     }
   });
 
-  it("creates a session from the POST /api/sessions endpoint", async () => {
-    // Input: a successful POST response containing a session id.
-    // Output: the helper should resolve with that session id.
+  it("creates a session via the control-plane and stores its location", async () => {
+    // Input: a successful control-plane POST response naming the provisioned host.
+    // Output: the helper should resolve with the session id and hit the control-plane, not the game server directly.
     const fetchMock = vi.mocked(fetch);
     fetchMock.mockResolvedValueOnce({
       ok: true,
-      json: async () => ({ sessionId: "ABC123" }),
+      json: async () => ({ sessionId: "ABC123", host: "fake-ams.test", protocol: "http" }),
     } as Response);
 
-    await expect(createSession()).resolves.toBe("ABC123");
-    expect(fetchMock).toHaveBeenCalledWith("/api/sessions", { method: "POST" });
+    await expect(createSession("ams")).resolves.toBe("ABC123");
+    expect(fetchMock).toHaveBeenCalledWith("http://localhost:4000/control/sessions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ region: "ams" }),
+    });
   });
 
-  it("validates an existing session and rejects a missing one", async () => {
-    // Input: one successful lookup and one failed lookup for a session id.
-    // Output: the helper should return true for the existing session and false for the missing one.
+  it("resolves a session's location via the control-plane when nothing is cached", async () => {
+    // Input: a friend opening a shared link with no host cached locally.
+    // Output: the helper looks up the host via the control-plane, then confirms the session still exists there.
     const fetchMock = vi.mocked(fetch);
+    fetchMock.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ host: "fake-ams.test", protocol: "http" }),
+    } as Response);
     fetchMock.mockResolvedValueOnce({ ok: true } as Response);
-    await expect(validateSession("abc123")).resolves.toBe(true);
 
+    await expect(resolveSession("abc123")).resolves.toEqual({ host: "fake-ams.test", protocol: "http" });
+    expect(fetchMock).toHaveBeenNthCalledWith(1, "http://localhost:4000/control/sessions/abc123");
+    expect(fetchMock).toHaveBeenNthCalledWith(2, "http://fake-ams.test/api/sessions/abc123");
+  });
+
+  it("returns null when the control-plane has no record of the session", async () => {
+    // Input: a control-plane lookup that 404s.
+    // Output: the helper should resolve to null without checking the game server.
+    const fetchMock = vi.mocked(fetch);
     fetchMock.mockResolvedValueOnce({ ok: false } as Response);
-    await expect(validateSession("missing")).resolves.toBe(false);
+
+    await expect(resolveSession("missing")).resolves.toBeNull();
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("skips the control-plane lookup once a session's host is cached", async () => {
+    // Input: a session already created locally, so its host is in session storage.
+    // Output: resolving it again should only re-check the game server, not the control-plane.
+    const fetchMock = vi.mocked(fetch);
+    fetchMock.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ sessionId: "ABC123", host: "fake-ams.test", protocol: "http" }),
+    } as Response);
+    await createSession("ams");
+
+    fetchMock.mockResolvedValueOnce({ ok: true } as Response);
+    await expect(resolveSession("ABC123")).resolves.toEqual({ host: "fake-ams.test", protocol: "http" });
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(fetchMock).toHaveBeenNthCalledWith(2, "http://fake-ams.test/api/sessions/ABC123");
   });
 
   it("persists the user name in session storage", () => {

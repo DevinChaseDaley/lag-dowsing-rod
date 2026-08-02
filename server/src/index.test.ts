@@ -53,4 +53,16 @@ describe("session API routes", () => {
     expect(response.statusCode).toBe(200);
     expect(response.json()).toEqual({ sessionId: sessionId.toUpperCase(), exists: true });
   });
+
+  it("reports the number of active sessions", async () => {
+    // Input: two created sessions followed by a GET request to /api/status.
+    // Output: activeSessions reflects the number of sessions created.
+    await app.inject({ method: "POST", url: "/api/sessions" });
+    await app.inject({ method: "POST", url: "/api/sessions" });
+
+    const response = await app.inject({ method: "GET", url: "/api/status" });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.json()).toEqual({ activeSessions: 2 });
+  });
 });
