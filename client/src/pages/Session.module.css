@@ -206,35 +206,6 @@
   color: var(--text-muted);
 }
 
-.jackpot {
-  margin: 0 0 1.25rem;
-  text-align: center;
-  color: var(--host-color);
-  font-family: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
-  font-size: 1.3rem;
-  font-weight: 600;
-  animation: jackpotBanner 1.2s ease-in-out;
-}
-
-@keyframes jackpotBanner {
-  0% {
-    opacity: 0;
-    transform: translateY(-6px) scale(0.96);
-  }
-  15% {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-  80% {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-  100% {
-    opacity: 0;
-    transform: translateY(-4px) scale(0.98);
-  }
-}
-
 .error {
   color: var(--rust);
   margin-top: 1rem;

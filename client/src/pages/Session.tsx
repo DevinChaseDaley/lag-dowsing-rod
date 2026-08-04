@@ -146,10 +146,6 @@ export function Session() {
         </div>
       </header>
 
-      {reveal.justRevealed && reveal.bestHost ? (
-        <p className={styles.jackpot}>{reveal.bestHost.userName} should host!</p>
-      ) : null}
-
       <div className={styles.layout}>
         <div className={sampling ? `${styles.wheelSlot} ${styles.wheelCentered}` : styles.wheelSlot}>
           <Wheel users={users} pingMatrix={pingMatrix} reveal={reveal} />
