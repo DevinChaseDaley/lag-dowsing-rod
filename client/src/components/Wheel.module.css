@@ -15,12 +15,23 @@
 .ring {
   fill: none;
   stroke: var(--wheel-ring);
-  stroke-width: 2;
-  stroke-dasharray: 6 8;
+  stroke-width: 1.5;
+}
+
+.tickMinor {
+  stroke: var(--wheel-tick);
+  stroke-width: 1;
+}
+
+.tickMajor {
+  stroke: var(--brass);
+  stroke-width: 1.5;
 }
 
 .pivot {
   fill: var(--rod-pivot);
+  stroke: var(--rod-shadow);
+  stroke-width: 1.5;
 }
 
 .empty {

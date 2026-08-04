@@ -4,8 +4,12 @@ interface DowsingRodProps {
   length: number;
 }
 
+const FORK_SPAN = 20;
+const FORK_LENGTH = 34;
+
 export function DowsingRod({ angle, center, length }: DowsingRodProps) {
   const rotation = angle + 90;
+  const forkPath = `M ${-FORK_SPAN} 2 L 0 ${-FORK_LENGTH} L ${FORK_SPAN} 2`;
 
   return (
     <g
@@ -13,25 +17,42 @@ export function DowsingRod({ angle, center, length }: DowsingRodProps) {
       transform={`translate(${center} ${center}) rotate(${rotation})`}
       style={{ transition: "transform 300ms ease-out" }}
     >
+      <path
+        d={forkPath}
+        fill="none"
+        stroke="var(--rod-shadow)"
+        strokeWidth={7}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
       <line
         x1={0}
-        y1={0}
+        y1={-FORK_LENGTH}
+        x2={0}
+        y2={-length}
+        stroke="var(--rod-shadow)"
+        strokeWidth={7}
+        strokeLinecap="round"
+      />
+      <path
+        d={forkPath}
+        fill="none"
+        stroke="var(--rod-color)"
+        strokeWidth={4}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <line
+        x1={0}
+        y1={-FORK_LENGTH}
         x2={0}
         y2={-length}
         stroke="var(--rod-color)"
-        strokeWidth={6}
+        strokeWidth={4}
         strokeLinecap="round"
       />
-      <line
-        x1={-18}
-        y1={-length + 12}
-        x2={18}
-        y2={-length + 12}
-        stroke="var(--rod-color)"
-        strokeWidth={5}
-        strokeLinecap="round"
-      />
-      <circle cx={0} cy={0} r={10} fill="var(--rod-pivot)" />
+      <circle cx={0} cy={-length} r={4} fill="var(--rod-color)" />
+      <circle cx={0} cy={0} r={9} fill="var(--rod-pivot)" stroke="var(--rod-shadow)" strokeWidth={1.5} />
     </g>
   );
 }
