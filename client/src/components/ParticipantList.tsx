@@ -1,4 +1,4 @@
-import type { User } from "@lag-dowsing-rod/shared";
+import { computeCombinedPing, findBestHost, type User } from "@lag-dowsing-rod/shared";
 import styles from "./ParticipantList.module.css";
 
 interface ParticipantListProps {
@@ -10,22 +10,32 @@ export function ParticipantList({ users, selfUserId }: ParticipantListProps) {
   if (users.length === 0) {
     return (
       <section className={styles.panel}>
-        <h2>Participants</h2>
+        <h2>Who should host?</h2>
         <p className={styles.empty}>No one has joined yet.</p>
       </section>
     );
   }
 
-  const sorted = [...users].sort((a, b) => (b.ping ?? -1) - (a.ping ?? -1));
+  const bestHost = findBestHost(users);
+  const ranked = users
+    .map((user) => ({ user, combinedPing: computeCombinedPing(user, users) }))
+    .sort((a, b) => (a.combinedPing ?? Infinity) - (b.combinedPing ?? Infinity));
 
   return (
     <section className={styles.panel}>
-      <h2>Participants</h2>
+      <h2>Who should host?</h2>
       <ul className={styles.list}>
-        {sorted.map((user) => (
+        {ranked.map(({ user, combinedPing }) => (
           <li key={user.userId} className={user.userId === selfUserId ? styles.self : undefined}>
-            <span className={styles.name}>{user.userName}</span>
-            <span className={styles.ping}>{user.ping === null ? "measuring…" : `${user.ping} ms`}</span>
+            <span className={styles.name}>
+              {user.userName}
+              {bestHost?.userId === user.userId ? (
+                <span className={styles.hostBadge}>Best host</span>
+              ) : null}
+            </span>
+            <span className={styles.ping}>
+              {combinedPing === null ? "measuring…" : `${combinedPing} ms combined`}
+            </span>
           </li>
         ))}
       </ul>

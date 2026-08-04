@@ -1,7 +1,10 @@
 import { describe, expect, it } from "vitest";
 import {
+  computeCombinedPing,
   computeRodAngleDegrees,
   computeRodAngleRadians,
+  estimatePairwisePing,
+  findBestHost,
   getTotalSlots,
   rollingAverage,
   wheelAngleRadians,
@@ -34,6 +37,75 @@ describe("getTotalSlots", () => {
   });
 });
 
+describe("estimatePairwisePing", () => {
+  it("sums both legs through the shared server", () => {
+    // Input: two users with known pings to the session server.
+    // Output: their estimated pairwise ping is the sum of both legs.
+    expect(estimatePairwisePing(user(0, 20), user(1, 30))).toBe(50);
+  });
+
+  it("returns null when either side lacks a ping sample", () => {
+    // Input: one user with no ping sample yet.
+    // Output: the pair estimate is unknown, not a guess.
+    expect(estimatePairwisePing(user(0, null), user(1, 30))).toBeNull();
+  });
+});
+
+describe("computeCombinedPing", () => {
+  it("is zero for a lone participant", () => {
+    // Input: a single user with no one else in the session.
+    // Output: there's no one to connect to, so combined ping is zero.
+    expect(computeCombinedPing(user(0, 100), [user(0, 100)])).toBe(0);
+  });
+
+  it("sums estimated pairwise ping to every other participant", () => {
+    // Input: three users with known pings.
+    // Output: user 0's combined ping is the sum of its estimated pairwise
+    // latency to user 1 and user 2.
+    const users = [user(0, 10), user(1, 20), user(2, 30)];
+    expect(computeCombinedPing(users[0], users)).toBe((10 + 20) + (10 + 30));
+  });
+
+  it("is null until the candidate and every peer have ping samples", () => {
+    // Input: a candidate with a ping sample but one peer still measuring.
+    // Output: the combined ping can't be computed yet.
+    const users = [user(0, 10), user(1, null), user(2, 30)];
+    expect(computeCombinedPing(users[0], users)).toBeNull();
+  });
+});
+
+describe("findBestHost", () => {
+  it("returns null for an empty session", () => {
+    // Input: no participants.
+    // Output: there's no one to recommend as host.
+    expect(findBestHost([])).toBeNull();
+  });
+
+  it("picks the only participant when alone", () => {
+    // Input: a single participant.
+    // Output: they're the only possible host.
+    const solo = user(0, 100);
+    expect(findBestHost([solo])).toBe(solo);
+  });
+
+  it("picks the participant with the lowest combined ping", () => {
+    // Input: one well-connected user and two laggier users.
+    // Output: the well-connected user produces the lowest combined ping
+    // for the group and should be recommended as host.
+    const central = user(0, 10);
+    const laggy1 = user(1, 150);
+    const laggy2 = user(2, 200);
+    expect(findBestHost([central, laggy1, laggy2])).toBe(central);
+  });
+
+  it("falls back to the first slot when no one has ping data yet", () => {
+    // Input: a session where nobody has reported a ping sample.
+    // Output: the rod still has somewhere to point.
+    const users = [user(0, null), user(1, null)];
+    expect(findBestHost(users)).toBe(users[0]);
+  });
+});
+
 describe("computeRodAngleRadians", () => {
   it("returns 0 with no users", () => {
     // Input: an empty user list.
@@ -42,46 +114,27 @@ describe("computeRodAngleRadians", () => {
   });
 
   it("points at the single user", () => {
-    // Input: one user with a strong ping.
-    // Output: the rod should point directly at that user’s wheel position.
+    // Input: one user with a ping sample.
+    // Output: the rod should point directly at that user's wheel position.
     const users = [user(0, 100)];
     expect(computeRodAngleRadians(users)).toBeCloseTo(wheelAngleRadians(0, 1));
   });
 
   it("points at the only user even without a ping sample", () => {
     // Input: one user with no ping sample in an otherwise empty session.
-    // Output: the rod should still point at that user’s slot.
+    // Output: the rod should still point at that user's slot.
     const users = [user(0, null)];
     expect(computeRodAngleRadians(users)).toBeCloseTo(wheelAngleRadians(0, 1));
   });
 
-  it("points between opposite users with equal ping", () => {
-    // Input: two users with equal ping occupying opposite slots.
-    // Output: the rod should settle halfway between them, which yields a cosine near zero.
-    const users = [user(0, 100), user(1, 100)];
-    const angle = computeRodAngleRadians(users);
-    expect(Math.cos(angle)).toBeCloseTo(0, 1);
-  });
-
-  it("pulls toward the higher ping user", () => {
-    // Input: one low-ping user and one high-ping user.
-    // Output: the rod should lean more toward the higher-ping user.
-    const low = user(0, 20);
-    const high = user(1, 200);
-    const angle = computeRodAngleRadians([low, high]);
-    const highAngle = wheelAngleRadians(high.slotIndex, 2);
-    const lowAngle = wheelAngleRadians(low.slotIndex, 2);
-
-    const distToHigh = Math.abs(Math.atan2(Math.sin(angle - highAngle), Math.cos(angle - highAngle)));
-    const distToLow = Math.abs(Math.atan2(Math.sin(angle - lowAngle), Math.cos(angle - lowAngle)));
-    expect(distToHigh).toBeLessThan(distToLow);
-  });
-
-  it("ignores users without ping samples", () => {
-    // Input: one user with no ping sample and one user with a valid ping.
-    // Output: only the valid ping should influence the rod angle.
-    const users = [user(0, null), user(1, 100)];
-    expect(computeRodAngleRadians(users)).toBeCloseTo(wheelAngleRadians(1, 2));
+  it("points at whichever user gives the lowest combined ping", () => {
+    // Input: a well-connected user and a laggier user in opposite slots.
+    // Output: the rod should point at the well-connected (better host)
+    // user's slot, not the laggy one.
+    const central = user(0, 20);
+    const laggy = user(1, 200);
+    const angle = computeRodAngleRadians([central, laggy]);
+    expect(angle).toBeCloseTo(wheelAngleRadians(0, 2));
   });
 });
 

@@ -14,6 +14,7 @@
   --wheel-ring: rgba(214, 168, 79, 0.45);
   --rod-color: #e8c27a;
   --rod-pivot: #8b5e2a;
+  --host-color: #8dffb2;
 }
 
 * {
@@ -41,6 +42,19 @@ input {
   stroke-width: 2;
 }
 
+.userNodeCircleHost {
+  fill: rgba(141, 255, 178, 0.18);
+  stroke: var(--host-color);
+  stroke-width: 3;
+}
+
+.userNodeHostBadge {
+  fill: var(--host-color);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+
 .userNodeName {
   fill: #f4f1ea;
   font-size: 13px;
@@ -50,5 +64,11 @@ input {
 .userNodePing {
   fill: var(--text-muted);
   font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.userNodeCombined {
+  fill: var(--text-muted);
+  font-size: 10px;
   font-variant-numeric: tabular-nums;
 }

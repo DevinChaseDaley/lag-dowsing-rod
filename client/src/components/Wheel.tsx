@@ -1,5 +1,7 @@
 import {
+  computeCombinedPing,
   computeRodAngleDegrees,
+  findBestHost,
   getTotalSlots,
   wheelPosition,
   type User,
@@ -19,6 +21,7 @@ interface WheelProps {
 export function Wheel({ users }: WheelProps) {
   const totalSlots = getTotalSlots(users);
   const rodAngle = computeRodAngleDegrees(users);
+  const bestHost = findBestHost(users);
 
   return (
     <div className={styles.wrapper}>
@@ -26,7 +29,7 @@ export function Wheel({ users }: WheelProps) {
         className={styles.wheel}
         viewBox={`0 0 ${WHEEL_SIZE} ${WHEEL_SIZE}`}
         role="img"
-        aria-label="Participant wheel with dowsing rod"
+        aria-label="Participant wheel with dowsing rod pointing at the recommended host"
       >
         <circle
           cx={CENTER}
@@ -40,7 +43,16 @@ export function Wheel({ users }: WheelProps) {
           const position = wheelPosition(user.slotIndex, totalSlots, RADIUS);
           const x = CENTER + position.x;
           const y = CENTER + position.y;
-          return <UserNode key={user.userId} user={user} x={x} y={y} />;
+          return (
+            <UserNode
+              key={user.userId}
+              user={user}
+              x={x}
+              y={y}
+              combinedPing={computeCombinedPing(user, users)}
+              isBestHost={bestHost?.userId === user.userId}
+            />
+          );
         })}
       </svg>
       {users.length === 0 ? (

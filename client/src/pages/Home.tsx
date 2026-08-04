@@ -65,10 +65,10 @@ export function Home() {
     <main className={styles.page}>
       <section className={styles.hero}>
         <p className={styles.eyebrow}>Lag Dowsing Rod</p>
-        <h1>Find where the lag pulls hardest</h1>
+        <h1>Find out who should host</h1>
         <p className={styles.lede}>
           Join a session, take your place on the wheel, and watch the dowsing rod swing
-          toward the ping-weighted center of the room.
+          toward whoever gives the group the lowest combined ping.
         </p>
       </section>
 

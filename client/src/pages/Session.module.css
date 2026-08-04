@@ -59,9 +59,10 @@
 }
 
 .layout {
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: 2rem;
+  align-items: start;
   min-height: calc(100vh - 8rem);
 }
 

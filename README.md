@@ -1,6 +1,6 @@
 # Lag Dowsing Rod
 
-A real-time web app where participants join a shared session, take fixed positions on a wheel, and a center dowsing rod rotates toward the **ping-weighted centroid** of the room. Higher latency pulls the rod more strongly toward that participant.
+A real-time web app that helps a group figure out who should host their gaming session. Participants join a shared session, take fixed positions on a wheel, and a center dowsing rod swings to point at whoever would give the group the **lowest combined ping** — the best-positioned host.
 
 ## How it works
 
@@ -8,7 +8,8 @@ A real-time web app where participants join a shared session, take fixed positio
 2. Participants join with a display name (guest mode, no accounts).
 3. Each browser measures round-trip latency to the session server every 2 seconds.
 4. Ping values are smoothed with a rolling average of the last 5 samples.
-5. The dowsing rod points toward the weighted vector sum of participant positions, using ping as weight.
+5. For each participant, the app estimates the round-trip latency to every other participant (both legs' pings to the shared server, summed) and totals it into a **combined ping** — the estimated cost the group would pay if that person hosted.
+6. The dowsing rod points at the participant with the lowest combined ping, and the participant list ranks everyone from best to worst host candidate.
 
 ## Monorepo layout
 
@@ -73,7 +74,7 @@ docker compose up --build
 2. Create a session in one tab.
 3. Open the copied link in two or more additional tabs with different names.
 4. Throttle network speed in DevTools for one tab.
-5. Confirm the rod swings toward the throttled participant as their ping rises.
+5. Confirm the rod swings away from the throttled participant, toward whichever remaining participant now has the lowest combined ping, and that the participant list's "Best host" badge tracks the same participant.
 
 ## Deployment notes
 
