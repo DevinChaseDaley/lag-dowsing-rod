@@ -129,7 +129,7 @@ export function Session() {
       <header className={styles.header}>
         <div>
           <p className={styles.codeLabel}>Session {normalizedSessionId}</p>
-          <h1>Lag Dowsing Rod</h1>
+          <h1>Who Should Host?</h1>
         </div>
         <div className={styles.headerActions}>
           <span className={connected ? styles.online : styles.offline}>

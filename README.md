@@ -1,4 +1,4 @@
-# Lag Dowsing Rod
+# Who Should Host?
 
 A real-time web app that helps a group figure out who should host their gaming session. Participants join a shared session, take fixed positions on a wheel, and a center dowsing rod swings to point at whoever would give the group the **lowest combined ping** — the best-positioned host.
 
