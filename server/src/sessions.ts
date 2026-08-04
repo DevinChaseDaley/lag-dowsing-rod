@@ -3,6 +3,7 @@ import {
   MAX_USERS_PER_SESSION,
   SESSION_ID_LENGTH,
   SESSION_TTL_MS,
+  type PingMatrix,
   type User,
 } from "@lag-dowsing-rod/shared";
 
@@ -11,6 +12,8 @@ const SESSION_CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 interface SessionRecord {
   sessionId: string;
   users: Map<string, User>;
+  /** fromUserId -> toUserId -> measured peer-to-peer RTT in ms. */
+  pingMatrix: Map<string, Map<string, number>>;
   nextSlotIndex: number;
   lastActivityAt: number;
 }
@@ -27,6 +30,7 @@ export class SessionManager {
     this.sessions.set(sessionId, {
       sessionId,
       users: new Map(),
+      pingMatrix: new Map(),
       nextSlotIndex: 0,
       lastActivityAt: Date.now(),
     });
@@ -48,6 +52,17 @@ export class SessionManager {
     if (!session) return [];
     this.compactSlots(session);
     return [...session.users.values()].sort((a, b) => a.slotIndex - b.slotIndex);
+  }
+
+  getPingMatrix(sessionId: string): PingMatrix {
+    const session = this.getSession(sessionId);
+    if (!session) return {};
+
+    const matrix: PingMatrix = {};
+    for (const [fromUserId, tos] of session.pingMatrix.entries()) {
+      matrix[fromUserId] = Object.fromEntries(tos);
+    }
+    return matrix;
   }
 
   joinSession(
@@ -101,6 +116,13 @@ export class SessionManager {
     if (!user) return null;
 
     session.users.delete(userId);
+    session.pingMatrix.delete(userId);
+    for (const [fromUserId, tos] of session.pingMatrix.entries()) {
+      tos.delete(userId);
+      if (tos.size === 0) {
+        session.pingMatrix.delete(fromUserId);
+      }
+    }
     this.compactSlots(session);
     session.lastActivityAt = Date.now();
     return user;
@@ -116,6 +138,24 @@ export class SessionManager {
     user.ping = Math.max(0, Math.round(ping));
     session.lastActivityAt = Date.now();
     return user;
+  }
+
+  /**
+   * Records the round-trip latency `fromUserId` measured directly to
+   * `toUserId` over their WebRTC data channel. Returns false if either
+   * participant isn't (or is no longer) part of the session.
+   */
+  updatePeerPing(sessionId: string, fromUserId: string, toUserId: string, ping: number): boolean {
+    const session = this.getSession(sessionId);
+    if (!session) return false;
+    if (!session.users.has(fromUserId) || !session.users.has(toUserId)) return false;
+
+    if (!session.pingMatrix.has(fromUserId)) {
+      session.pingMatrix.set(fromUserId, new Map());
+    }
+    session.pingMatrix.get(fromUserId)?.set(toUserId, Math.max(0, Math.round(ping)));
+    session.lastActivityAt = Date.now();
+    return true;
   }
 
   private getSession(sessionId: string): SessionRecord | undefined {

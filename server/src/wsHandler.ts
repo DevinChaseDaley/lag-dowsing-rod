@@ -1,5 +1,5 @@
 import type { WebSocket } from "ws";
-import type { ClientMessage, ServerMessage, User } from "@lag-dowsing-rod/shared";
+import type { ClientMessage, ServerMessage, WebRTCSignal } from "@lag-dowsing-rod/shared";
 import type { SessionManager } from "./sessions.js";
 
 interface ConnectedClient {
@@ -47,6 +47,12 @@ export class WebSocketHub {
       case "ping_report":
         this.handlePingReport(socket, message.payload.ping);
         break;
+      case "webrtc_signal":
+        this.handleSignal(socket, message.payload);
+        break;
+      case "peer_ping_report":
+        this.handlePeerPingReport(socket, message.payload);
+        break;
       default:
         this.send(socket, { type: "error", payload: { message: "Unknown message type" } });
     }
@@ -77,7 +83,7 @@ export class WebSocketHub {
     this.addToSession(sessionId, socket);
     this.send(socket, {
       type: "session_state",
-      payload: { users: this.sessions.getUsers(sessionId) },
+      payload: { users: this.sessions.getUsers(sessionId), pingMatrix: this.sessions.getPingMatrix(sessionId) },
     });
 
     if (!result.reconnected) {
@@ -100,6 +106,38 @@ export class WebSocketHub {
     this.broadcastSessionState(client.sessionId);
   }
 
+  /**
+   * Relays an SDP offer/answer or ICE candidate to another participant in
+   * the same session so the two browsers can negotiate a direct WebRTC
+   * connection. The server never inspects the signal payload itself.
+   */
+  private handleSignal(socket: WebSocket, payload: { targetUserId: string; signal: WebRTCSignal }): void {
+    const client = this.clients.get(socket);
+    if (!client) return;
+
+    const targetSocket = this.findSocketForUser(client.sessionId, payload.targetUserId);
+    if (!targetSocket) return;
+
+    this.send(targetSocket, {
+      type: "webrtc_signal",
+      payload: { fromUserId: client.userId, signal: payload.signal },
+    });
+  }
+
+  private handlePeerPingReport(socket: WebSocket, payload: { peerUserId: string; ping: number }): void {
+    const client = this.clients.get(socket);
+    if (!client) return;
+
+    const updated = this.sessions.updatePeerPing(client.sessionId, client.userId, payload.peerUserId, payload.ping);
+    if (!updated) return;
+
+    this.broadcast(client.sessionId, {
+      type: "peer_ping_update",
+      payload: { fromUserId: client.userId, toUserId: payload.peerUserId, ping: payload.ping },
+    });
+    this.broadcastSessionState(client.sessionId);
+  }
+
   private handleDisconnect(socket: WebSocket): void {
     const client = this.clients.get(socket);
     if (!client) return;
@@ -117,7 +155,7 @@ export class WebSocketHub {
   private broadcastSessionState(sessionId: string): void {
     this.broadcast(sessionId, {
       type: "session_state",
-      payload: { users: this.sessions.getUsers(sessionId) },
+      payload: { users: this.sessions.getUsers(sessionId), pingMatrix: this.sessions.getPingMatrix(sessionId) },
     });
   }
 
@@ -153,5 +191,17 @@ export class WebSocketHub {
     if (sockets.size === 0) {
       this.sessionSockets.delete(sessionId);
     }
+  }
+
+  private findSocketForUser(sessionId: string, userId: string): WebSocket | undefined {
+    const sockets = this.sessionSockets.get(sessionId);
+    if (!sockets) return undefined;
+
+    for (const socket of sockets) {
+      if (this.clients.get(socket)?.userId === userId) {
+        return socket;
+      }
+    }
+    return undefined;
   }
 }

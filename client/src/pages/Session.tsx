@@ -30,7 +30,7 @@ export function Session() {
     [normalizedSessionId],
   );
 
-  const { users, connected, error, selfUserId } = useSessionSocket({
+  const { users, pingMatrix, connected, error, selfUserId } = useSessionSocket({
     sessionId: normalizedSessionId,
     userName,
     clientId,
@@ -146,8 +146,8 @@ export function Session() {
       </header>
 
       <div className={styles.layout}>
-        <Wheel users={users} />
-        <ParticipantList users={users} selfUserId={selfUserId} />
+        <Wheel users={users} pingMatrix={pingMatrix} />
+        <ParticipantList users={users} pingMatrix={pingMatrix} selfUserId={selfUserId} />
       </div>
 
       {error ? <p className={styles.error}>{error}</p> : null}

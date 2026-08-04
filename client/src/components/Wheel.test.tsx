@@ -15,7 +15,7 @@ function user(slotIndex: number): User {
 
 describe("Wheel", () => {
   it("points the rod at the only user in the session", () => {
-    const markup = renderToStaticMarkup(<Wheel users={[user(0)]} />);
+    const markup = renderToStaticMarkup(<Wheel users={[user(0)]} pingMatrix={{}} />);
     expect(markup).toContain('transform="translate(210 210) rotate(0)"');
     expect(markup).toContain('y2="-160"');
   });

@@ -9,8 +9,8 @@ interface UserNodeProps {
 }
 
 export function UserNode({ user, x, y, combinedPing, isBestHost }: UserNodeProps) {
-  const pingLabel = user.ping === null ? "…" : `${user.ping}ms`;
-  const combinedLabel = combinedPing === null ? "…" : `${combinedPing}ms combined`;
+  const pingLabel = user.ping === null ? "signal …" : `signal ${user.ping}ms`;
+  const combinedLabel = combinedPing === null ? "measuring…" : `${combinedPing}ms combined`;
   const circleClass = isBestHost ? "userNodeCircle userNodeCircleHost" : "userNodeCircle";
 
   return (

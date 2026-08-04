@@ -4,6 +4,7 @@ import {
   findBestHost,
   getTotalSlots,
   wheelPosition,
+  type PingMatrix,
   type User,
 } from "@lag-dowsing-rod/shared";
 import { UserNode } from "./UserNode";
@@ -20,6 +21,7 @@ const TICK_OUTER_MAJOR = RADIUS + 20;
 
 interface WheelProps {
   users: User[];
+  pingMatrix: PingMatrix;
 }
 
 function CompassTicks() {
@@ -46,10 +48,10 @@ function CompassTicks() {
   return <g>{ticks}</g>;
 }
 
-export function Wheel({ users }: WheelProps) {
+export function Wheel({ users, pingMatrix }: WheelProps) {
   const totalSlots = getTotalSlots(users);
-  const rodAngle = computeRodAngleDegrees(users);
-  const bestHost = findBestHost(users);
+  const rodAngle = computeRodAngleDegrees(users, pingMatrix);
+  const bestHost = findBestHost(users, pingMatrix);
 
   return (
     <div className={styles.wrapper}>
@@ -78,7 +80,7 @@ export function Wheel({ users }: WheelProps) {
               user={user}
               x={x}
               y={y}
-              combinedPing={computeCombinedPing(user, users)}
+              combinedPing={computeCombinedPing(user, users, pingMatrix)}
               isBestHost={bestHost?.userId === user.userId}
             />
           );

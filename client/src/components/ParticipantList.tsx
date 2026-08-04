@@ -1,12 +1,13 @@
-import { computeCombinedPing, findBestHost, type User } from "@lag-dowsing-rod/shared";
+import { computeCombinedPing, findBestHost, type PingMatrix, type User } from "@lag-dowsing-rod/shared";
 import styles from "./ParticipantList.module.css";
 
 interface ParticipantListProps {
   users: User[];
+  pingMatrix: PingMatrix;
   selfUserId: string | null;
 }
 
-export function ParticipantList({ users, selfUserId }: ParticipantListProps) {
+export function ParticipantList({ users, pingMatrix, selfUserId }: ParticipantListProps) {
   if (users.length === 0) {
     return (
       <section className={styles.panel}>
@@ -16,9 +17,9 @@ export function ParticipantList({ users, selfUserId }: ParticipantListProps) {
     );
   }
 
-  const bestHost = findBestHost(users);
+  const bestHost = findBestHost(users, pingMatrix);
   const ranked = users
-    .map((user) => ({ user, combinedPing: computeCombinedPing(user, users) }))
+    .map((user) => ({ user, combinedPing: computeCombinedPing(user, users, pingMatrix) }))
     .sort((a, b) => (a.combinedPing ?? Infinity) - (b.combinedPing ?? Infinity));
 
   return (
