@@ -1,5 +1,6 @@
 import { computeCombinedPing, getTotalSlots, wheelPosition, type PingMatrix, type User } from "@lag-dowsing-rod/shared";
 import type { HostRevealState } from "../hooks/useHostReveal";
+import { useIsCompact } from "../hooks/useIsCompact";
 import { UserNode } from "./UserNode";
 import { DowsingRod } from "./DowsingRod";
 import styles from "./Wheel.module.css";
@@ -46,6 +47,7 @@ export function Wheel({ users, pingMatrix, reveal }: WheelProps) {
   const totalSlots = getTotalSlots(users);
   const { phase, bestHost, rodAngleDegrees, justRevealed } = reveal;
   const sampling = phase === "sampling";
+  const compact = useIsCompact();
 
   return (
     <div className={styles.wrapper}>
@@ -86,6 +88,7 @@ export function Wheel({ users, pingMatrix, reveal }: WheelProps) {
               combinedPing={computeCombinedPing(user, users, pingMatrix)}
               isBestHost={!sampling && bestHost?.userId === user.userId}
               justRevealed={justRevealed}
+              compact={compact}
             />
           );
         })}

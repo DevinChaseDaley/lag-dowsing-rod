@@ -89,10 +89,18 @@ select {
   letter-spacing: 0.12em;
 }
 
+.userNodeHostBadgeCompact {
+  font-size: 15px;
+}
+
 .userNodeName {
   fill: var(--parchment);
   font-size: 13px;
   font-weight: 600;
+}
+
+.userNodeNameCompact {
+  font-size: 19px;
 }
 
 .userNodePing {
@@ -101,10 +109,18 @@ select {
   font-size: 12px;
 }
 
+.userNodePingCompact {
+  font-size: 17px;
+}
+
 .userNodeCombined {
   fill: var(--text-muted);
   font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
   font-size: 10px;
+}
+
+.userNodeCombinedCompact {
+  font-size: 16px;
 }
 
 @keyframes rodSearch {
