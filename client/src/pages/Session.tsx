@@ -7,9 +7,8 @@ import {
   getClientId,
   getSessionShareUrl,
   getStoredUserName,
-  resolveSession,
+  sessionExists,
   storeUserName,
-  type SessionLocation,
 } from "../lib/sessionApi";
 import styles from "./Session.module.css";
 
@@ -21,7 +20,6 @@ export function Session() {
   const [userName, setUserName] = useState(getStoredUserName());
   const [joined, setJoined] = useState(false);
   const [checkingSession, setCheckingSession] = useState(true);
-  const [location, setLocation] = useState<SessionLocation | null>(null);
   const [joinError, setJoinError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
 
@@ -34,8 +32,7 @@ export function Session() {
     sessionId: normalizedSessionId,
     userName,
     clientId,
-    location,
-    enabled: joined && location !== null,
+    enabled: joined,
   });
 
   useEffect(() => {
@@ -48,15 +45,14 @@ export function Session() {
       }
 
       setCheckingSession(true);
-      const resolved = await resolveSession(normalizedSessionId);
+      const exists = await sessionExists(normalizedSessionId);
       if (cancelled) return;
 
-      if (!resolved) {
+      if (!exists) {
         navigate("/");
         return;
       }
 
-      setLocation(resolved);
       setCheckingSession(false);
 
       const storedName = getStoredUserName();

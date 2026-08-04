@@ -1,11 +1,10 @@
-app = "lag-dowsing-rod-control"
+app = "lag-dowsing-rod"
 primary_region = "iad"
 
 [build]
-  dockerfile = "control-plane/Dockerfile"
 
 [http_service]
-  internal_port = 4000
+  internal_port = 3001
   force_https = true
   auto_stop_machines = false
   auto_start_machines = true

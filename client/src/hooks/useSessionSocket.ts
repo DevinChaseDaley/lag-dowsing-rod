@@ -9,14 +9,13 @@ import {
   type User,
   type WebRTCSignal,
 } from "@lag-dowsing-rod/shared";
-import { getWebSocketUrl, type SessionLocation } from "../lib/sessionApi";
+import { getWebSocketUrl } from "../lib/sessionApi";
 import { usePeerMesh } from "./usePeerMesh";
 
 interface UseSessionSocketOptions {
   sessionId: string;
   userName: string;
   clientId: string;
-  location: SessionLocation | null;
   enabled: boolean;
 }
 
@@ -32,7 +31,6 @@ export function useSessionSocket({
   sessionId,
   userName,
   clientId,
-  location,
   enabled,
 }: UseSessionSocketOptions): UseSessionSocketResult {
   const [users, setUsers] = useState<User[]>([]);
@@ -83,14 +81,14 @@ export function useSessionSocket({
   });
 
   useEffect(() => {
-    if (!enabled || !sessionId || !userName || !location) return;
+    if (!enabled || !sessionId || !userName) return;
 
     let cancelled = false;
 
     const connect = () => {
       if (cancelled) return;
 
-      const socket = new WebSocket(getWebSocketUrl(location));
+      const socket = new WebSocket(getWebSocketUrl());
       socketRef.current = socket;
       joinedRef.current = false;
 
@@ -191,7 +189,7 @@ export function useSessionSocket({
       socketRef.current?.close();
       socketRef.current = null;
     };
-  }, [clientId, enabled, handleSignal, location, reportPing, send, sessionId, userName]);
+  }, [clientId, enabled, handleSignal, reportPing, send, sessionId, userName]);
 
   return { users, pingMatrix, connected, error, selfUserId };
 }

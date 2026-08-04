@@ -64,8 +64,7 @@
   letter-spacing: 0.03em;
 }
 
-.field input,
-.field select {
+.field input {
   border: 1px solid var(--line);
   border-radius: 5px;
   background: var(--ink);
@@ -74,8 +73,7 @@
   font: inherit;
 }
 
-.field input:focus,
-.field select:focus {
+.field input:focus {
   outline: none;
   border-color: var(--brass);
 }
