@@ -31,11 +31,6 @@
   background: var(--line);
 }
 
-.hero h1 {
-  margin: 0 0 0.9rem;
-  font-size: clamp(2rem, 4vw, 2.8rem);
-}
-
 .lede {
   margin: 0;
   color: var(--text-muted);

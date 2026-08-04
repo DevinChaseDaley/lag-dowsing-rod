@@ -61,8 +61,7 @@ export function Home() {
   return (
     <main className={styles.page}>
       <section className={styles.hero}>
-        <p className={styles.eyebrow}>Who Should Host?</p>
-        <h1>The dowsing rod finds your host</h1>
+        <h1 className={styles.eyebrow}>Who Should Host?</h1>
         <p className={styles.lede}>
           Join a session, take your place on the wheel, and watch the dowsing rod swing
           toward whoever gives the group the lowest combined ping.

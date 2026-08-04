@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { ParticipantList } from "../components/ParticipantList";
 import { Wheel } from "../components/Wheel";
+import { useHostReveal } from "../hooks/useHostReveal";
 import { useSessionSocket } from "../hooks/useSessionSocket";
 import {
   getClientId,
@@ -34,6 +35,8 @@ export function Session() {
     clientId,
     enabled: joined,
   });
+
+  const reveal = useHostReveal(users, pingMatrix);
 
   useEffect(() => {
     let cancelled = false;
@@ -141,9 +144,13 @@ export function Session() {
         </div>
       </header>
 
+      {reveal.justRevealed && reveal.bestHost ? (
+        <p className={styles.jackpot}>{reveal.bestHost.userName} should host!</p>
+      ) : null}
+
       <div className={styles.layout}>
-        <Wheel users={users} pingMatrix={pingMatrix} />
-        <ParticipantList users={users} pingMatrix={pingMatrix} selfUserId={selfUserId} />
+        <Wheel users={users} pingMatrix={pingMatrix} reveal={reveal} />
+        <ParticipantList users={users} pingMatrix={pingMatrix} reveal={reveal} selfUserId={selfUserId} />
       </div>
 
       {error ? <p className={styles.error}>{error}</p> : null}

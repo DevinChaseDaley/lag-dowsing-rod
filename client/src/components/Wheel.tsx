@@ -1,12 +1,5 @@
-import {
-  computeCombinedPing,
-  computeRodAngleDegrees,
-  findBestHost,
-  getTotalSlots,
-  wheelPosition,
-  type PingMatrix,
-  type User,
-} from "@lag-dowsing-rod/shared";
+import { computeCombinedPing, getTotalSlots, wheelPosition, type PingMatrix, type User } from "@lag-dowsing-rod/shared";
+import type { HostRevealState } from "../hooks/useHostReveal";
 import { UserNode } from "./UserNode";
 import { DowsingRod } from "./DowsingRod";
 import styles from "./Wheel.module.css";
@@ -22,6 +15,7 @@ const TICK_OUTER_MAJOR = RADIUS + 20;
 interface WheelProps {
   users: User[];
   pingMatrix: PingMatrix;
+  reveal: HostRevealState;
 }
 
 function CompassTicks() {
@@ -48,10 +42,10 @@ function CompassTicks() {
   return <g>{ticks}</g>;
 }
 
-export function Wheel({ users, pingMatrix }: WheelProps) {
+export function Wheel({ users, pingMatrix, reveal }: WheelProps) {
   const totalSlots = getTotalSlots(users);
-  const rodAngle = computeRodAngleDegrees(users, pingMatrix);
-  const bestHost = findBestHost(users, pingMatrix);
+  const { phase, bestHost, rodAngleDegrees, justRevealed } = reveal;
+  const sampling = phase === "sampling";
 
   return (
     <div className={styles.wrapper}>
@@ -59,17 +53,26 @@ export function Wheel({ users, pingMatrix }: WheelProps) {
         className={styles.wheel}
         viewBox={`0 0 ${WHEEL_SIZE} ${WHEEL_SIZE}`}
         role="img"
-        aria-label="Participant wheel with dowsing rod pointing at the recommended host"
+        aria-label={
+          sampling
+            ? "Participant wheel with dowsing rod searching for the recommended host"
+            : "Participant wheel with dowsing rod pointing at the recommended host"
+        }
       >
         <CompassTicks />
         <circle
           cx={CENTER}
           cy={CENTER}
           r={RADIUS}
-          className={styles.ring}
+          className={sampling ? `${styles.ring} ${styles.ringMeasuring}` : styles.ring}
         />
         <circle cx={CENTER} cy={CENTER} r={8} className={styles.pivot} />
-        <DowsingRod angle={rodAngle} center={CENTER} length={RADIUS} />
+        <DowsingRod
+          center={CENTER}
+          length={RADIUS}
+          angleDegrees={sampling ? null : rodAngleDegrees}
+          justRevealed={justRevealed}
+        />
         {users.map((user) => {
           const position = wheelPosition(user.slotIndex, totalSlots, RADIUS);
           const x = CENTER + position.x;
@@ -81,13 +84,16 @@ export function Wheel({ users, pingMatrix }: WheelProps) {
               x={x}
               y={y}
               combinedPing={computeCombinedPing(user, users, pingMatrix)}
-              isBestHost={bestHost?.userId === user.userId}
+              isBestHost={!sampling && bestHost?.userId === user.userId}
+              justRevealed={justRevealed}
             />
           );
         })}
       </svg>
       {users.length === 0 ? (
         <p className={styles.empty}>Waiting for participants…</p>
+      ) : sampling ? (
+        <p className={styles.empty}>Measuring connections…</p>
       ) : null}
     </div>
   );

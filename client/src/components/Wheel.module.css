@@ -18,6 +18,20 @@
   stroke-width: 1.5;
 }
 
+.ringMeasuring {
+  animation: ringPulse 2.4s ease-in-out infinite;
+}
+
+@keyframes ringPulse {
+  0%,
+  100% {
+    stroke: var(--wheel-ring);
+  }
+  50% {
+    stroke: var(--brass);
+  }
+}
+
 .tickMinor {
   stroke: var(--wheel-tick);
   stroke-width: 1;
