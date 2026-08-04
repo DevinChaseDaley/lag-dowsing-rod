@@ -27,10 +27,13 @@ export function ParticipantList({ users, pingMatrix, reveal, selfUserId }: Parti
   return (
     <section className={styles.panel}>
       <h2>Who should host?</h2>
-      {sampling ? <p className={styles.status}>Measuring connections…</p> : null}
       <ul className={styles.list}>
-        {ranked.map(({ user, combinedPing }) => (
-          <li key={user.userId} className={user.userId === selfUserId ? styles.self : undefined}>
+        {ranked.map(({ user, combinedPing }, index) => (
+          <li
+            key={user.userId}
+            className={user.userId === selfUserId ? styles.self : undefined}
+            style={reveal.justRevealed ? { animation: `itemAppear 420ms ease-out ${index * 90}ms both` } : undefined}
+          >
             <span className={styles.name}>
               {user.userName}
               {!sampling && reveal.bestHost?.userId === user.userId ? (

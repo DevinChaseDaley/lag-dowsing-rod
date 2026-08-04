@@ -13,6 +13,11 @@
   margin-bottom: 2rem;
   padding-bottom: 1.25rem;
   border-bottom: 1px solid var(--line-soft);
+  transition: opacity 500ms ease;
+}
+
+.headerDimmed {
+  opacity: 0.32;
 }
 
 .header h1 {
@@ -99,6 +104,28 @@
   gap: 2rem;
   align-items: start;
   min-height: calc(100vh - 10rem);
+}
+
+.wheelSlot {
+  transition: transform 700ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.participantsSlot {
+  transition: opacity 450ms ease, transform 450ms ease;
+}
+
+.participantsHidden {
+  opacity: 0;
+  transform: translateY(10px);
+  pointer-events: none;
+}
+
+@media (min-width: 861px) {
+  .wheelCentered {
+    /* Shift right by half the sidebar column + gap, centering the wheel
+       across the full two-column layout width while the sidebar is hidden. */
+    transform: translateX(calc((320px + 2rem) / 2));
+  }
 }
 
 .joinCard {

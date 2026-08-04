@@ -127,9 +127,11 @@ export function Session() {
     );
   }
 
+  const sampling = reveal.phase === "sampling";
+
   return (
     <main className={styles.page}>
-      <header className={styles.header}>
+      <header className={sampling ? `${styles.header} ${styles.headerDimmed}` : styles.header}>
         <div>
           <p className={styles.codeLabel}>Session {normalizedSessionId}</p>
           <h1>Who Should Host?</h1>
@@ -149,8 +151,12 @@ export function Session() {
       ) : null}
 
       <div className={styles.layout}>
-        <Wheel users={users} pingMatrix={pingMatrix} reveal={reveal} />
-        <ParticipantList users={users} pingMatrix={pingMatrix} reveal={reveal} selfUserId={selfUserId} />
+        <div className={sampling ? `${styles.wheelSlot} ${styles.wheelCentered}` : styles.wheelSlot}>
+          <Wheel users={users} pingMatrix={pingMatrix} reveal={reveal} />
+        </div>
+        <div className={sampling ? `${styles.participantsSlot} ${styles.participantsHidden}` : styles.participantsSlot}>
+          <ParticipantList users={users} pingMatrix={pingMatrix} reveal={reveal} selfUserId={selfUserId} />
+        </div>
       </div>
 
       {error ? <p className={styles.error}>{error}</p> : null}
