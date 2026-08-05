@@ -87,7 +87,7 @@ There are two deployables: the static frontend and the always-on session/signali
 
 ### Server
 
-The root `Dockerfile` builds the server (`server/` + `shared/`):
+`server/Dockerfile` builds just the server (`server/` + `shared/`), skipping the client entirely — equivalent to:
 
 ```bash
 npm run build -w shared
@@ -95,7 +95,7 @@ npm run build -w server
 npm run start -w server
 ```
 
-`fly.toml` deploys it as a single always-on Fly app (`internal_port = 3001`) — adjust the `app` name to match whatever you've already provisioned, or deploy it anywhere else that can run a long-lived Node process and accept WebSocket connections.
+`fly.toml` points its `[build]` at `server/Dockerfile` and deploys it as a single always-on Fly app (`internal_port = 3001`, matching the server's default `PORT`) — adjust the `app` name to match whatever you've already provisioned, or deploy it anywhere else that can run a long-lived Node process and accept WebSocket connections. The root `Dockerfile` is separate and still builds all three workspaces — it's what `docker-compose.yml` uses for local dev (see below), where the `client` service needs the full source tree to run `vite dev`.
 
 ### Frontend
 
