@@ -1,31 +1,48 @@
-import type { User } from "@lag-dowsing-rod/shared";
+import { computeCombinedPing, type PingMatrix, type User } from "@lag-dowsing-rod/shared";
+import type { HostRevealState } from "../hooks/useHostReveal";
 import styles from "./ParticipantList.module.css";
 
 interface ParticipantListProps {
   users: User[];
+  pingMatrix: PingMatrix;
+  reveal: HostRevealState;
   selfUserId: string | null;
 }
 
-export function ParticipantList({ users, selfUserId }: ParticipantListProps) {
+export function ParticipantList({ users, pingMatrix, reveal, selfUserId }: ParticipantListProps) {
   if (users.length === 0) {
     return (
       <section className={styles.panel}>
-        <h2>Participants</h2>
+        <h2>Who should host?</h2>
         <p className={styles.empty}>No one has joined yet.</p>
       </section>
     );
   }
 
-  const sorted = [...users].sort((a, b) => (b.ping ?? -1) - (a.ping ?? -1));
+  const sampling = reveal.phase === "sampling";
+  const ranked = users
+    .map((user) => ({ user, combinedPing: computeCombinedPing(user, users, pingMatrix) }))
+    .sort((a, b) => (a.combinedPing ?? Infinity) - (b.combinedPing ?? Infinity));
 
   return (
     <section className={styles.panel}>
-      <h2>Participants</h2>
+      <h2>Who should host?</h2>
       <ul className={styles.list}>
-        {sorted.map((user) => (
-          <li key={user.userId} className={user.userId === selfUserId ? styles.self : undefined}>
-            <span className={styles.name}>{user.userName}</span>
-            <span className={styles.ping}>{user.ping === null ? "measuring…" : `${user.ping} ms`}</span>
+        {ranked.map(({ user, combinedPing }, index) => (
+          <li
+            key={user.userId}
+            className={user.userId === selfUserId ? styles.self : undefined}
+            style={reveal.justRevealed ? { animation: `itemAppear 420ms ease-out ${index * 90}ms both` } : undefined}
+          >
+            <span className={styles.name}>
+              {user.userName}
+              {!sampling && reveal.bestHost?.userId === user.userId ? (
+                <span className={styles.hostBadge}>Best host</span>
+              ) : null}
+            </span>
+            <span className={styles.ping}>
+              {combinedPing === null ? "measuring…" : `${combinedPing} ms combined`}
+            </span>
           </li>
         ))}
       </ul>

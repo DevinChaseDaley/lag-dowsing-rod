@@ -1,13 +1,11 @@
 import { useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
-import { LOL_REGIONS } from "@lag-dowsing-rod/shared";
-import { createSession, getStoredUserName, resolveSession, storeUserName } from "../lib/sessionApi";
+import { createSession, getStoredUserName, sessionExists, storeUserName } from "../lib/sessionApi";
 import styles from "./Home.module.css";
 
 export function Home() {
   const navigate = useNavigate();
   const [userName, setUserName] = useState(getStoredUserName());
-  const [platform, setPlatform] = useState(LOL_REGIONS[0].platform);
   const [sessionCode, setSessionCode] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -22,8 +20,7 @@ export function Home() {
     setError(null);
     try {
       storeUserName(userName);
-      const region = LOL_REGIONS.find((option) => option.platform === platform)?.flyRegion ?? platform;
-      const sessionId = await createSession(region);
+      const sessionId = await createSession();
       navigate(`/session/${sessionId}`);
     } catch {
       setError("Could not create a session. Try again.");
@@ -47,8 +44,8 @@ export function Home() {
     setError(null);
     try {
       const normalized = sessionCode.trim().toUpperCase();
-      const location = await resolveSession(normalized);
-      if (!location) {
+      const exists = await sessionExists(normalized);
+      if (!exists) {
         setError("Session not found.");
         return;
       }
@@ -64,11 +61,10 @@ export function Home() {
   return (
     <main className={styles.page}>
       <section className={styles.hero}>
-        <p className={styles.eyebrow}>Lag Dowsing Rod</p>
-        <h1>Find where the lag pulls hardest</h1>
+        <h1 className={styles.eyebrow}>Who Should Host?</h1>
         <p className={styles.lede}>
           Join a session, take your place on the wheel, and watch the dowsing rod swing
-          toward the ping-weighted center of the room.
+          toward whoever gives the group the lowest combined ping.
         </p>
       </section>
 
@@ -82,17 +78,6 @@ export function Home() {
             maxLength={24}
             autoComplete="nickname"
           />
-        </label>
-
-        <label className={styles.field}>
-          <span>Game region</span>
-          <select value={platform} onChange={(event) => setPlatform(event.target.value)}>
-            {LOL_REGIONS.map((region) => (
-              <option key={region.platform} value={region.platform}>
-                {region.label}
-              </option>
-            ))}
-          </select>
         </label>
 
         <button

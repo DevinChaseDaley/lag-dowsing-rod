@@ -1,13 +1,13 @@
 .panel {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 16px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 8px;
   padding: 1.25rem;
 }
 
 .panel h2 {
-  margin: 0 0 0.75rem;
-  font-size: 1rem;
+  margin: 0 0 0.9rem;
+  font-size: 1.05rem;
   font-weight: 600;
 }
 
@@ -25,21 +25,38 @@
   align-items: center;
   gap: 1rem;
   padding: 0.65rem 0.75rem;
-  border-radius: 10px;
-  background: rgba(255, 255, 255, 0.03);
+  border-radius: 5px;
+  border: 1px solid var(--line-soft);
+  background: var(--panel-raised);
 }
 
 .self {
-  outline: 1px solid var(--accent);
+  border-color: var(--brass);
 }
 
 .name {
   font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.hostBadge {
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #16110a;
+  background: var(--verdigris);
+  border-radius: 3px;
+  padding: 0.15rem 0.4rem;
 }
 
 .ping {
   color: var(--text-muted);
-  font-variant-numeric: tabular-nums;
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+  font-size: 0.85rem;
 }
 
 .empty {

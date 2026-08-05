@@ -1,14 +1,15 @@
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
+import { ParticipantList } from "../components/ParticipantList";
 import { Wheel } from "../components/Wheel";
+import { useHostReveal } from "../hooks/useHostReveal";
 import { useSessionSocket } from "../hooks/useSessionSocket";
 import {
   getClientId,
   getSessionShareUrl,
   getStoredUserName,
-  resolveSession,
+  sessionExists,
   storeUserName,
-  type SessionLocation,
 } from "../lib/sessionApi";
 import styles from "./Session.module.css";
 
@@ -20,7 +21,6 @@ export function Session() {
   const [userName, setUserName] = useState(getStoredUserName());
   const [joined, setJoined] = useState(false);
   const [checkingSession, setCheckingSession] = useState(true);
-  const [location, setLocation] = useState<SessionLocation | null>(null);
   const [joinError, setJoinError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
 
@@ -29,13 +29,14 @@ export function Session() {
     [normalizedSessionId],
   );
 
-  const { users, connected, error } = useSessionSocket({
+  const { users, pingMatrix, connected, error, selfUserId } = useSessionSocket({
     sessionId: normalizedSessionId,
     userName,
     clientId,
-    location,
-    enabled: joined && location !== null,
+    enabled: joined,
   });
+
+  const reveal = useHostReveal(users, pingMatrix);
 
   useEffect(() => {
     let cancelled = false;
@@ -47,15 +48,14 @@ export function Session() {
       }
 
       setCheckingSession(true);
-      const resolved = await resolveSession(normalizedSessionId);
+      const exists = await sessionExists(normalizedSessionId);
       if (cancelled) return;
 
-      if (!resolved) {
+      if (!exists) {
         navigate("/");
         return;
       }
 
-      setLocation(resolved);
       setCheckingSession(false);
 
       const storedName = getStoredUserName();
@@ -127,12 +127,14 @@ export function Session() {
     );
   }
 
+  const sampling = reveal.phase === "sampling";
+
   return (
     <main className={styles.page}>
-      <header className={styles.header}>
+      <header className={sampling ? `${styles.header} ${styles.headerDimmed}` : styles.header}>
         <div>
           <p className={styles.codeLabel}>Session {normalizedSessionId}</p>
-          <h1>Lag Dowsing Rod</h1>
+          <h1>Who Should Host?</h1>
         </div>
         <div className={styles.headerActions}>
           <span className={connected ? styles.online : styles.offline}>
@@ -145,7 +147,12 @@ export function Session() {
       </header>
 
       <div className={styles.layout}>
-        <Wheel users={users} />
+        <div className={sampling ? `${styles.wheelSlot} ${styles.wheelCentered}` : styles.wheelSlot}>
+          <Wheel users={users} pingMatrix={pingMatrix} reveal={reveal} />
+        </div>
+        <div className={sampling ? `${styles.participantsSlot} ${styles.participantsHidden}` : styles.participantsSlot}>
+          <ParticipantList users={users} pingMatrix={pingMatrix} reveal={reveal} selfUserId={selfUserId} />
+        </div>
       </div>
 
       {error ? <p className={styles.error}>{error}</p> : null}

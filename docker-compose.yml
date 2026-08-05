@@ -17,7 +17,7 @@ services:
     ports:
       - "5173:5173"
     environment:
-      VITE_API_URL: http://server:3001
+      VITE_API_URL: http://localhost:3001
     command: npm run dev -w client -- --host 0.0.0.0
     depends_on:
       - server

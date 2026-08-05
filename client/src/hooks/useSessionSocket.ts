@@ -4,21 +4,24 @@ import {
   PING_SAMPLE_SIZE,
   rollingAverage,
   type ClientMessage,
+  type PingMatrix,
   type ServerMessage,
   type User,
+  type WebRTCSignal,
 } from "@lag-dowsing-rod/shared";
-import { getWebSocketUrl, type SessionLocation } from "../lib/sessionApi";
+import { getWebSocketUrl } from "../lib/sessionApi";
+import { usePeerMesh } from "./usePeerMesh";
 
 interface UseSessionSocketOptions {
   sessionId: string;
   userName: string;
   clientId: string;
-  location: SessionLocation | null;
   enabled: boolean;
 }
 
 interface UseSessionSocketResult {
   users: User[];
+  pingMatrix: PingMatrix;
   connected: boolean;
   error: string | null;
   selfUserId: string | null;
@@ -28,10 +31,10 @@ export function useSessionSocket({
   sessionId,
   userName,
   clientId,
-  location,
   enabled,
 }: UseSessionSocketOptions): UseSessionSocketResult {
   const [users, setUsers] = useState<User[]>([]);
+  const [pingMatrix, setPingMatrix] = useState<PingMatrix>({});
   const [connected, setConnected] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selfUserId, setSelfUserId] = useState<string | null>(null);
@@ -56,15 +59,36 @@ export function useSessionSocket({
     }
   }, [send]);
 
+  const sendSignal = useCallback(
+    (targetUserId: string, signal: WebRTCSignal) => {
+      send({ type: "webrtc_signal", payload: { targetUserId, signal } });
+    },
+    [send],
+  );
+
+  const reportPeerPing = useCallback(
+    (peerUserId: string, ping: number) => {
+      send({ type: "peer_ping_report", payload: { peerUserId, ping } });
+    },
+    [send],
+  );
+
+  const { handleSignal } = usePeerMesh({
+    selfUserId,
+    peerIds: users.map((user) => user.userId),
+    onSignal: sendSignal,
+    onPeerPing: reportPeerPing,
+  });
+
   useEffect(() => {
-    if (!enabled || !sessionId || !userName || !location) return;
+    if (!enabled || !sessionId || !userName) return;
 
     let cancelled = false;
 
     const connect = () => {
       if (cancelled) return;
 
-      const socket = new WebSocket(getWebSocketUrl(location));
+      const socket = new WebSocket(getWebSocketUrl());
       socketRef.current = socket;
       joinedRef.current = false;
 
@@ -88,6 +112,7 @@ export function useSessionSocket({
         switch (message.type) {
           case "session_state":
             setUsers(message.payload.users);
+            setPingMatrix(message.payload.pingMatrix);
             if (!joinedRef.current) {
               const self = message.payload.users.find((user) => user.clientId === clientId);
               if (self) {
@@ -104,6 +129,18 @@ export function useSessionSocket({
                   : user,
               ),
             );
+            break;
+          case "peer_ping_update":
+            setPingMatrix((current) => ({
+              ...current,
+              [message.payload.fromUserId]: {
+                ...current[message.payload.fromUserId],
+                [message.payload.toUserId]: message.payload.ping,
+              },
+            }));
+            break;
+          case "webrtc_signal":
+            handleSignal(message.payload.fromUserId, message.payload.signal);
             break;
           case "user_joined":
           case "user_left":
@@ -152,7 +189,7 @@ export function useSessionSocket({
       socketRef.current?.close();
       socketRef.current = null;
     };
-  }, [clientId, enabled, location, reportPing, send, sessionId, userName]);
+  }, [clientId, enabled, handleSignal, reportPing, send, sessionId, userName]);
 
-  return { users, connected, error, selfUserId };
+  return { users, pingMatrix, connected, error, selfUserId };
 }
