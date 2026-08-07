@@ -108,6 +108,8 @@ npm run build -w client
 
 The client talks to the server directly, cross-origin — no `/api`/`/ws` proxy config is needed on the frontend host itself.
 
+React Router's `BrowserRouter` does client-side routing via the History API, so a direct request for a path like `/session/ABC123` (a refresh, or someone opening a shared link) hits the static host directly rather than going through React Router — without a fallback rule, that 404s since no file exists at that path. `vercel.json` already includes the rewrite (`"rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]`) that serves `index.html` for any unmatched path so the client-side router can take over; other static hosts need their own equivalent (Netlify: a `_redirects` file with `/* /index.html 200`; Cloudflare Pages: same `_redirects` syntax).
+
 ## Protocol summary
 
 ### REST — game server
