@@ -3,12 +3,26 @@ import { useNavigate } from "react-router-dom";
 import { createSession, getStoredUserName, sessionExists, storeUserName } from "../lib/sessionApi";
 import styles from "./Home.module.css";
 
+const SLOW_REQUEST_MS = 2500;
+
 export function Home() {
   const navigate = useNavigate();
   const [userName, setUserName] = useState(getStoredUserName());
   const [sessionCode, setSessionCode] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [pendingAction, setPendingAction] = useState<"create" | "join" | null>(null);
+  const [slow, setSlow] = useState(false);
+  const loading = pendingAction !== null;
+
+  const withSlowNotice = async <T,>(action: () => Promise<T>): Promise<T> => {
+    const timer = window.setTimeout(() => setSlow(true), SLOW_REQUEST_MS);
+    try {
+      return await action();
+    } finally {
+      window.clearTimeout(timer);
+      setSlow(false);
+    }
+  };
 
   const handleCreate = async () => {
     if (!userName.trim()) {
@@ -16,16 +30,16 @@ export function Home() {
       return;
     }
 
-    setLoading(true);
+    setPendingAction("create");
     setError(null);
     try {
       storeUserName(userName);
-      const sessionId = await createSession();
+      const sessionId = await withSlowNotice(() => createSession());
       navigate(`/session/${sessionId}`);
     } catch {
       setError("Could not create a session. Try again.");
     } finally {
-      setLoading(false);
+      setPendingAction(null);
     }
   };
 
@@ -40,11 +54,11 @@ export function Home() {
       return;
     }
 
-    setLoading(true);
+    setPendingAction("join");
     setError(null);
     try {
       const normalized = sessionCode.trim().toUpperCase();
-      const exists = await sessionExists(normalized);
+      const exists = await withSlowNotice(() => sessionExists(normalized));
       if (!exists) {
         setError("Session not found.");
         return;
@@ -54,7 +68,7 @@ export function Home() {
     } catch {
       setError("Could not join the session. Try again.");
     } finally {
-      setLoading(false);
+      setPendingAction(null);
     }
   };
 
@@ -86,7 +100,7 @@ export function Home() {
           onClick={handleCreate}
           disabled={loading}
         >
-          Create session
+          {pendingAction === "create" ? "Creating…" : "Create session"}
         </button>
 
         <div className={styles.divider}>or join existing</div>
@@ -102,10 +116,13 @@ export function Home() {
             />
           </label>
           <button type="submit" className={styles.secondary} disabled={loading}>
-            Join session
+            {pendingAction === "join" ? "Joining…" : "Join session"}
           </button>
         </form>
 
+        {slow ? (
+          <p className={styles.status}>Still working — the server may be waking up…</p>
+        ) : null}
         {error ? <p className={styles.error}>{error}</p> : null}
       </section>
     </main>

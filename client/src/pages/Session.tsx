@@ -21,6 +21,7 @@ export function Session() {
   const [userName, setUserName] = useState(getStoredUserName());
   const [joined, setJoined] = useState(false);
   const [checkingSession, setCheckingSession] = useState(true);
+  const [slowCheck, setSlowCheck] = useState(false);
   const [joinError, setJoinError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
 
@@ -48,7 +49,10 @@ export function Session() {
       }
 
       setCheckingSession(true);
+      setSlowCheck(false);
+      const slowTimer = window.setTimeout(() => setSlowCheck(true), 2500);
       const exists = await sessionExists(normalizedSessionId);
+      window.clearTimeout(slowTimer);
       if (cancelled) return;
 
       if (!exists) {
@@ -93,6 +97,9 @@ export function Session() {
     return (
       <main className={styles.page}>
         <p className={styles.status}>Loading session…</p>
+        {slowCheck ? (
+          <p className={styles.status}>Still working — the server may be waking up…</p>
+        ) : null}
       </main>
     );
   }
